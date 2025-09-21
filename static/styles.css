@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for the YearRangeSlider */
+.year-range-slider-track {
+  position: relative;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}
+
+.year-range-slider-range {
+  position: absolute;
+  height: 100%;
+  background-color: #3b82f6; /* blue-500 */
+  border-radius: 4px;
+}
+
+.year-range-slider-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: #1d4ed8; /* blue-700 */
+  border-radius: 50%;
+  cursor: grab;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.year-range-slider-handle:active {
+  cursor: grabbing;
+}
+
+.year-range-slider-marker {
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background-color: #9ca3af; /* gray-400 */
+  top: 0;
+}
+
+.year-range-slider-marker.decade-marker {
+  background-color: #6b7280; /* gray-500, slightly darker for decades */
+  width: 2px; /* Thicker for decades */
+}
+
+.year-range-slider-marker.current-year-marker {
+  background-color: #ef4444; /* red-500, prominent color for current year */
+  width: 3px; /* Even thicker for current year */
+  z-index: 5; /* Ensure it's above other markers */
+}
+
+.fresh-gradient {
+  background-color: rgb(134, 239, 172);
+  background-image: linear-gradient(
+    to right bottom,
+    rgb(219, 234, 254),
+    rgb(187, 247, 208),
+    rgb(254, 249, 195)
+  );
+}
