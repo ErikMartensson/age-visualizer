@@ -2,62 +2,122 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark Theme Base Styles */
+.dark-theme {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  min-height: 100vh;
+  color: #e2e8f0;
+}
+
 /* Custom styles for the YearRangeSlider */
 .year-range-slider-track {
   position: relative;
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
+  height: 16px;
+  background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .year-range-slider-range {
   position: absolute;
   height: 100%;
-  background-color: #3b82f6; /* blue-500 */
-  border-radius: 4px;
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  transition: all 0.15s ease;
 }
 
 .year-range-slider-handle {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  background-color: #1d4ed8; /* blue-700 */
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: 3px solid #1e293b;
   border-radius: 50%;
   cursor: grab;
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+  transition: all 0.2s ease;
+  touch-action: none;
+}
+
+.year-range-slider-handle.current-year-handle {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+}
+
+.year-range-slider-handle:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+}
+
+.year-range-slider-handle.current-year-handle:hover {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.7);
 }
 
 .year-range-slider-handle:active {
   cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* Mobile touch target enhancement */
+@media (max-width: 768px) {
+  .year-range-slider-handle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .year-range-slider-track {
+    height: 20px;
+  }
 }
 
 .year-range-slider-marker {
   position: absolute;
   height: 100%;
   width: 1px;
-  background-color: #9ca3af; /* gray-400 */
+  background-color: #475569;
   top: 0;
+  opacity: 0.5;
 }
 
 .year-range-slider-marker.decade-marker {
-  background-color: #6b7280; /* gray-500, slightly darker for decades */
-  width: 2px; /* Thicker for decades */
+  background-color: #64748b;
+  width: 2px;
+  opacity: 0.7;
 }
 
 .year-range-slider-marker.current-year-marker {
-  background-color: #ef4444; /* red-500, prominent color for current year */
-  width: 3px; /* Even thicker for current year */
-  z-index: 5; /* Ensure it's above other markers */
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  width: 3px;
+  z-index: 5;
+  opacity: 1;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
 }
 
-.fresh-gradient {
-  background-color: rgb(134, 239, 172);
-  background-image: linear-gradient(
-    to right bottom,
-    rgb(219, 234, 254),
-    rgb(187, 247, 208),
-    rgb(254, 249, 195)
-  );
+/* Card styling for the slider container */
+.slider-card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 640px) {
+  .slider-card {
+    padding: 2rem;
+  }
+}
+
+/* Text styling */
+.text-gradient {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

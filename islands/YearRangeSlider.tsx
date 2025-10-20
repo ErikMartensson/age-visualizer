@@ -16,14 +16,27 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
   const isDraggingStart = useRef(false);
   const isDraggingEnd = useRef(false);
 
+  // Dynamic visible range based on birth year
+  const visibleMinYear = computed(() => {
+    // Show a range that starts 20 years before birth year, but not before minYear
+    const dynamicMin = Math.max(minYear, startYear.value - 20);
+    return dynamicMin;
+  });
+
+  const visibleMaxYear = computed(() => {
+    // Show a range that extends to at least 120 years after birth year or maxYear
+    const dynamicMax = Math.min(maxYear, Math.max(endYear.value + 20, startYear.value + 120));
+    return dynamicMax;
+  });
+
   const getPositionFromYear = (year: number) => {
-    const range = maxYear - minYear;
-    return ((year - minYear) / range) * 100;
+    const range = visibleMaxYear.value - visibleMinYear.value;
+    return ((year - visibleMinYear.value) / range) * 100;
   };
 
   const getYearFromPosition = (position: number) => {
-    const range = maxYear - minYear;
-    const year = Math.round((position / 100) * range) + minYear;
+    const range = visibleMaxYear.value - visibleMinYear.value;
+    const year = Math.round((position / 100) * range) + visibleMinYear.value;
     return Math.max(minYear, Math.min(maxYear, year));
   };
 
@@ -95,7 +108,7 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
   });
 
   const yearMarkers = [];
-  for (let year = minYear; year <= maxYear; year++) {
+  for (let year = visibleMinYear.value; year <= visibleMaxYear.value; year++) {
     const position = getPositionFromYear(year);
     const isCurrentYear = year === currentYear;
     const isDecade = year % 10 === 0;
@@ -113,7 +126,7 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
   }
 
   return (
-    <div class="w-full p-4">
+    <div class="w-full">
       <div class="year-range-slider-track" ref={sliderRef}>
         {yearMarkers}
         <div
@@ -125,23 +138,23 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
         >
         </div>
         <div
-          class="year-range-slider-handle"
+          class={`year-range-slider-handle ${startYear.value === currentYear ? "current-year-handle" : ""}`}
           style={{ left: `${startPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "start")}
         >
         </div>
         <div
-          class="year-range-slider-handle"
+          class={`year-range-slider-handle ${endYear.value === currentYear ? "current-year-handle" : ""}`}
           style={{ left: `${endPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "end")}
         >
         </div>
       </div>
-      <div class="flex justify-between mt-4 text-lg font-bold">
-        <span>Start: {startYear.value}</span>
-        <span>End: {endYear.value}</span>
+      <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 text-base sm:text-lg font-semibold text-slate-300">
+        <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center">Birth Year: <span class={startYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{startYear.value}</span></span>
+        <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center">Target Year: <span class={endYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{endYear.value}</span></span>
       </div>
-      <p class="mt-4 text-xl text-center">
+      <p class="mt-6 text-xl sm:text-2xl text-center font-semibold text-slate-100">
         {ageMessage.value}
       </p>
     </div>
