@@ -3,9 +3,9 @@ import { define } from "../utils.ts";
 import YearRangeSlider from "../islands/YearRangeSlider.tsx";
 
 export default define.page(function Home() {
-  const startYear = useSignal(1990);
-  const endYear = useSignal(2005);
+  const startYear = useSignal(2000);
   const currentYear = new Date().getFullYear();
+  const endYear = useSignal(currentYear);
 
   return (
     <div class="px-4 sm:px-6 lg:px-8 py-8 mx-auto min-h-screen flex items-center justify-center">
@@ -14,7 +14,7 @@ export default define.page(function Home() {
         <div class="slider-card w-full">
           <YearRangeSlider
             minYear={1900}
-            maxYear={2050}
+            maxYear={2100}
             startYear={startYear}
             endYear={endYear}
             currentYear={currentYear}

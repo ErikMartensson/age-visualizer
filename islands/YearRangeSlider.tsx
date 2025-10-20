@@ -25,7 +25,7 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
 
   const visibleMaxYear = computed(() => {
     // Show a range that extends to at least 120 years after birth year or maxYear
-    const dynamicMax = Math.min(maxYear, Math.max(endYear.value + 20, startYear.value + 120));
+    const dynamicMax = Math.min(maxYear, Math.max(endYear.value + 20, startYear.value + 50));
     return dynamicMax;
   });
 
@@ -107,6 +107,11 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
     }
   });
 
+  const handleReset = () => {
+    startYear.value = 2000;
+    endYear.value = currentYear;
+  };
+
   const yearMarkers = [];
   for (let year = visibleMinYear.value; year <= visibleMaxYear.value; year++) {
     const position = getPositionFromYear(year);
@@ -151,12 +156,47 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
         </div>
       </div>
       <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 text-base sm:text-lg font-semibold text-slate-300">
-        <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center">Birth Year: <span class={startYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{startYear.value}</span></span>
-        <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center">Target Year: <span class={endYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{endYear.value}</span></span>
+        <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
+          </svg>
+          Birth Year: <span class={startYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{startYear.value}</span>
+        </span>
+        <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+          </svg>
+          Target Year: <span class={endYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{endYear.value}</span>
+        </span>
       </div>
-      <p class="mt-6 text-xl sm:text-2xl text-center font-semibold text-slate-100">
-        {ageMessage.value}
-      </p>
+      <div class="mt-6 flex items-center justify-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+        </svg>
+        <p class="text-xl sm:text-2xl text-center font-semibold text-slate-100">
+          {ageMessage.value}
+        </p>
+      </div>
+      <div class="mt-6 flex justify-center">
+        <button
+          onClick={handleReset}
+          class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Reset
+        </button>
+      </div>
     </div>
   );
 }
