@@ -1,9 +1,11 @@
-import { App, fsRoutes, staticFiles } from "fresh";
+import { App, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
 
-export const app = new App<State>();
-
-app.use(staticFiles());
+export const app = new App<State>()
+  // Add static file serving middleware
+  .use(staticFiles())
+  // Enable file-system based routing
+  .fsRoutes();
 
 // this is the same as the /api/:name route defined via a file. feel free to delete this!
 app.get("/api2/:name", (ctx) => {
@@ -19,11 +21,6 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
   return ctx.next();
 });
 app.use(exampleLoggerMiddleware);
-
-await fsRoutes(app, {
-  loadIsland: (path) => import(`./islands/${path}`),
-  loadRoute: (path) => import(`./routes/${path}`),
-});
 
 if (import.meta.main) {
   await app.listen();

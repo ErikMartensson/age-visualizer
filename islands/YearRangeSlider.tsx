@@ -1,5 +1,5 @@
-import { useSignal, Signal, computed } from "@preact/signals";
-import { useEffect, useRef, useCallback } from "preact/hooks";
+import { computed, Signal } from "@preact/signals";
+import { useCallback, useEffect, useRef } from "preact/hooks";
 
 interface YearRangeSliderProps {
   minYear: number;
@@ -103,9 +103,12 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
     yearMarkers.push(
       <div
         key={year}
-        class={`year-range-slider-marker ${isCurrentYear ? "current-year-marker" : ""} ${isDecade ? "decade-marker" : ""}`}
+        class={`year-range-slider-marker ${
+          isCurrentYear ? "current-year-marker" : ""
+        } ${isDecade ? "decade-marker" : ""}`}
         style={{ left: `${position}%` }}
-      ></div>,
+      >
+      </div>,
     );
   }
 
@@ -115,18 +118,24 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
         {yearMarkers}
         <div
           class="year-range-slider-range"
-          style={{ left: `${startPos.value}%`, width: `${endPos.value - startPos.value}%` }}
-        ></div>
+          style={{
+            left: `${startPos.value}%`,
+            width: `${endPos.value - startPos.value}%`,
+          }}
+        >
+        </div>
         <div
           class="year-range-slider-handle"
           style={{ left: `${startPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "start")}
-        ></div>
+        >
+        </div>
         <div
           class="year-range-slider-handle"
           style={{ left: `${endPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "end")}
-        ></div>
+        >
+        </div>
       </div>
       <div class="flex justify-between mt-4 text-lg font-bold">
         <span>Start: {startYear.value}</span>
