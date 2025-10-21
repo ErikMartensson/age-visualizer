@@ -11,7 +11,14 @@ interface YearRangeSliderProps {
 }
 
 export default function YearRangeSlider(props: YearRangeSliderProps) {
-  const { minYear, maxYear, startYear, endYear, currentYear, personName = "Person" } = props;
+  const {
+    minYear,
+    maxYear,
+    startYear,
+    endYear,
+    currentYear,
+    personName = "Person",
+  } = props;
 
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingStart = useRef(false);
@@ -38,7 +45,10 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
       return frozenMaxYear.value;
     }
     // Show a range that extends to at least 50 years after birth year or maxYear
-    const dynamicMax = Math.min(maxYear, Math.max(endYear.value + 30, startYear.value + 50));
+    const dynamicMax = Math.min(
+      maxYear,
+      Math.max(endYear.value + 30, startYear.value + 50),
+    );
 
     // Ensure minimum visible range
     const minRequired = visibleMinYear.value + MIN_VISIBLE_RANGE;
@@ -56,11 +66,11 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
     return Math.max(minYear, Math.min(maxYear, year));
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleMove = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
 
     const sliderRect = sliderRef.current.getBoundingClientRect();
-    let newPosition = ((e.clientX - sliderRect.left) / sliderRect.width) * 100;
+    let newPosition = ((clientX - sliderRect.left) / sliderRect.width) * 100;
     newPosition = Math.max(0, Math.min(100, newPosition));
 
     if (isDraggingStart.current) {
@@ -92,23 +102,33 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
         endYear.value = startYear.value;
       }
     }
-  }, [minYear, maxYear, startYear, endYear]); // Dependencies for useCallback
+  }, [minYear, maxYear, startYear, endYear]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    handleMove(e.clientX);
+  }, [handleMove]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length > 0) {
+      handleMove(e.touches[0].clientX);
+    }
+  }, [handleMove]);
+
+  const handleEnd = useCallback(() => {
     isDraggingStart.current = false;
     isDraggingEnd.current = false;
     // Unfreeze the visible range
     frozenMinYear.value = null;
     frozenMaxYear.value = null;
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
-  }, [handleMouseMove]); // Dependency for useCallback
+    globalThis.removeEventListener("mousemove", handleMouseMove);
+    globalThis.removeEventListener("mouseup", handleEnd);
+    globalThis.removeEventListener("touchmove", handleTouchMove);
+    globalThis.removeEventListener("touchend", handleEnd);
+  }, [handleMouseMove, handleTouchMove]);
 
-  const handleMouseDown = (
-    e: MouseEvent,
+  const handleStart = (
     handleType: "start" | "end",
   ) => {
-    e.preventDefault();
     // Freeze the visible range at the moment dragging starts
     frozenMinYear.value = visibleMinYear.value;
     frozenMaxYear.value = visibleMaxYear.value;
@@ -118,17 +138,39 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
     } else {
       isDraggingEnd.current = true;
     }
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    globalThis.addEventListener("mousemove", handleMouseMove);
+    globalThis.addEventListener("mouseup", handleEnd);
+    globalThis.addEventListener("touchmove", handleTouchMove);
+    globalThis.addEventListener("touchend", handleEnd);
+  };
+
+  const handleMouseDown = (
+    e: MouseEvent,
+    handleType: "start" | "end",
+  ) => {
+    e.preventDefault();
+    handleStart(handleType);
+  };
+
+  const handleTouchStart = (
+    e: TouchEvent,
+    handleType: "start" | "end",
+  ) => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      handleStart(handleType);
+    }
   };
 
   useEffect(() => {
     // Clean up event listeners when component unmounts
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      globalThis.removeEventListener("mousemove", handleMouseMove);
+      globalThis.removeEventListener("mouseup", handleEnd);
+      globalThis.removeEventListener("touchmove", handleTouchMove);
+      globalThis.removeEventListener("touchend", handleEnd);
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleEnd, handleTouchMove]);
 
   const startPos = computed(() => getPositionFromYear(startYear.value));
   const endPos = computed(() => getPositionFromYear(endYear.value));
@@ -180,41 +222,94 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
         >
         </div>
         <div
-          class={`year-range-slider-handle ${startYear.value === currentYear ? "current-year-handle" : ""}`}
+          class={`year-range-slider-handle ${
+            startYear.value === currentYear ? "current-year-handle" : ""
+          }`}
           style={{ left: `${startPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "start")}
+          onTouchStart={(e) => handleTouchStart(e, "start")}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="#1e293b">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="#1e293b"
+          >
             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
           </svg>
         </div>
         <div
-          class={`year-range-slider-handle ${endYear.value === currentYear ? "current-year-handle" : ""}`}
+          class={`year-range-slider-handle ${
+            endYear.value === currentYear ? "current-year-handle" : ""
+          }`}
           style={{ left: `${endPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "end")}
+          onTouchStart={(e) => handleTouchStart(e, "end")}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="#1e293b">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="#1e293b"
+          >
             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
           </svg>
         </div>
       </div>
       <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 text-base sm:text-lg font-semibold text-slate-300">
         <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 text-blue-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
             <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
           </svg>
-          Birth Year: <span class={startYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{startYear.value}</span>
+          Birth Year:{" "}
+          <span
+            class={startYear.value === currentYear
+              ? "text-red-400"
+              : "text-blue-400"}
+          >
+            {startYear.value}
+          </span>
         </span>
         <span class="bg-slate-700/50 px-4 py-2 rounded-lg text-center flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 text-blue-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+              clip-rule="evenodd"
+            />
           </svg>
-          Target Year: <span class={endYear.value === currentYear ? "text-red-400" : "text-blue-400"}>{endYear.value}</span>
+          Target Year:{" "}
+          <span
+            class={endYear.value === currentYear
+              ? "text-red-400"
+              : "text-blue-400"}
+          >
+            {endYear.value}
+          </span>
         </span>
       </div>
       <div class="mt-6 flex items-center justify-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-7 w-7 text-blue-400 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+            clip-rule="evenodd"
+          />
         </svg>
         <p class="text-xl sm:text-2xl text-center font-semibold text-slate-100">
           {ageMessage.value}
@@ -222,6 +317,7 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
       </div>
       <div class="mt-6 flex justify-center">
         <button
+          type="button"
           onClick={handleReset}
           class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center gap-2"
         >
