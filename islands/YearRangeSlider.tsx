@@ -178,11 +178,29 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
   const ageMessage = computed(() => {
     const age = endYear.value - startYear.value;
     if (endYear.value < currentYear) {
-      return `${personName} was ${age} years old in ${endYear.value}`;
+      return {
+        name: personName,
+        verb: "was",
+        age: age,
+        timeContext: "in",
+        year: endYear.value,
+      };
     } else if (endYear.value === currentYear) {
-      return `${personName} is ${age} years old today`;
+      return {
+        name: personName,
+        verb: "is",
+        age: age,
+        timeContext: "today",
+        year: null,
+      };
     } else {
-      return `${personName} will be ${age} years old in ${endYear.value}`;
+      return {
+        name: personName,
+        verb: "will be",
+        age: age,
+        timeContext: "in",
+        year: endYear.value,
+      };
     }
   });
 
@@ -311,9 +329,50 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
             clip-rule="evenodd"
           />
         </svg>
-        <p class="text-xl sm:text-2xl text-center font-semibold text-slate-100">
-          {ageMessage.value}
-        </p>
+        <div class="text-xl sm:text-2xl text-center font-semibold text-slate-100">
+          {/* Desktop: single line */}
+          <div class="hidden sm:flex items-center justify-center gap-x-2">
+            <span>{ageMessage.value.name}</span>
+            <span>{ageMessage.value.verb}</span>
+            <span>
+              <span class="text-blue-400">{ageMessage.value.age}</span>{" "}
+              years old
+            </span>
+            {ageMessage.value.year !== null && (
+              <span>
+                {ageMessage.value.timeContext}{" "}
+                <span class="text-blue-400">{ageMessage.value.year}</span>
+              </span>
+            )}
+            {ageMessage.value.year === null && (
+              <span class="text-blue-400">{ageMessage.value.timeContext}</span>
+            )}
+          </div>
+          {/* Mobile: two lines with consistent break */}
+          <div class="flex sm:hidden flex-col items-center justify-center gap-y-1">
+            <div class="flex items-center gap-x-2">
+              <span>{ageMessage.value.name}</span>
+              <span>{ageMessage.value.verb}</span>
+              <span class="text-blue-400">{ageMessage.value.age}</span>
+            </div>
+            <div class="flex items-center gap-x-2">
+              <span>
+                {" "}years old
+              </span>
+              {ageMessage.value.year !== null && (
+                <span>
+                  {ageMessage.value.timeContext}{" "}
+                  <span class="text-blue-400">{ageMessage.value.year}</span>
+                </span>
+              )}
+              {ageMessage.value.year === null && (
+                <span class="text-blue-400">
+                  {ageMessage.value.timeContext}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       <div class="mt-6 flex justify-center">
         <button
