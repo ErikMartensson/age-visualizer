@@ -1,4 +1,4 @@
-import { computed, Signal } from "@preact/signals";
+import { computed, Signal, useSignal } from "@preact/signals";
 import { useCallback, useEffect, useRef } from "preact/hooks";
 
 interface YearRangeSliderProps {
@@ -7,26 +7,42 @@ interface YearRangeSliderProps {
   startYear: Signal<number>;
   endYear: Signal<number>;
   currentYear: number;
+  personName?: string;
 }
 
 export default function YearRangeSlider(props: YearRangeSliderProps) {
-  const { minYear, maxYear, startYear, endYear, currentYear } = props;
+  const { minYear, maxYear, startYear, endYear, currentYear, personName = "Person" } = props;
 
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingStart = useRef(false);
   const isDraggingEnd = useRef(false);
+  const frozenMinYear = useSignal<number | null>(null);
+  const frozenMaxYear = useSignal<number | null>(null);
+
+  const MIN_VISIBLE_RANGE = 50; // Minimum 50 years visible range
 
   // Dynamic visible range based on birth year
   const visibleMinYear = computed(() => {
-    // Show a range that starts 20 years before birth year, but not before minYear
-    const dynamicMin = Math.max(minYear, startYear.value - 20);
+    // Use frozen value while dragging
+    if (frozenMinYear.value !== null) {
+      return frozenMinYear.value;
+    }
+    // Show a range that starts 30 years before birth year, but not before minYear
+    const dynamicMin = Math.max(minYear, startYear.value - 30);
     return dynamicMin;
   });
 
   const visibleMaxYear = computed(() => {
-    // Show a range that extends to at least 120 years after birth year or maxYear
-    const dynamicMax = Math.min(maxYear, Math.max(endYear.value + 20, startYear.value + 50));
-    return dynamicMax;
+    // Use frozen value while dragging
+    if (frozenMaxYear.value !== null) {
+      return frozenMaxYear.value;
+    }
+    // Show a range that extends to at least 50 years after birth year or maxYear
+    const dynamicMax = Math.min(maxYear, Math.max(endYear.value + 30, startYear.value + 50));
+
+    // Ensure minimum visible range
+    const minRequired = visibleMinYear.value + MIN_VISIBLE_RANGE;
+    return Math.max(dynamicMax, minRequired);
   });
 
   const getPositionFromYear = (year: number) => {
@@ -49,6 +65,13 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
 
     if (isDraggingStart.current) {
       const newStartYear = getYearFromPosition(newPosition);
+
+      // Unfreeze if dragging to the edge (left edge for start handle)
+      if (newPosition <= 3 && frozenMinYear.value !== null) {
+        frozenMinYear.value = null;
+        frozenMaxYear.value = null;
+      }
+
       if (newStartYear <= endYear.value) {
         startYear.value = newStartYear;
       } else {
@@ -56,6 +79,13 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
       }
     } else if (isDraggingEnd.current) {
       const newEndYear = getYearFromPosition(newPosition);
+
+      // Unfreeze if dragging to the edge (right edge for end handle)
+      if (newPosition >= 97 && frozenMaxYear.value !== null) {
+        frozenMinYear.value = null;
+        frozenMaxYear.value = null;
+      }
+
       if (newEndYear >= startYear.value) {
         endYear.value = newEndYear;
       } else {
@@ -67,15 +97,22 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
   const handleMouseUp = useCallback(() => {
     isDraggingStart.current = false;
     isDraggingEnd.current = false;
+    // Unfreeze the visible range
+    frozenMinYear.value = null;
+    frozenMaxYear.value = null;
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mouseup", handleMouseUp);
   }, [handleMouseMove]); // Dependency for useCallback
 
-  const handleMouseDown = useCallback((
+  const handleMouseDown = (
     e: MouseEvent,
     handleType: "start" | "end",
   ) => {
     e.preventDefault();
+    // Freeze the visible range at the moment dragging starts
+    frozenMinYear.value = visibleMinYear.value;
+    frozenMaxYear.value = visibleMaxYear.value;
+
     if (handleType === "start") {
       isDraggingStart.current = true;
     } else {
@@ -83,7 +120,7 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
     }
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-  }, [handleMouseMove, handleMouseUp]); // Dependencies for useCallback
+  };
 
   useEffect(() => {
     // Clean up event listeners when component unmounts
@@ -99,11 +136,11 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
   const ageMessage = computed(() => {
     const age = endYear.value - startYear.value;
     if (endYear.value < currentYear) {
-      return `Person was ${age} years old in ${endYear.value}`;
+      return `${personName} was ${age} years old in ${endYear.value}`;
     } else if (endYear.value === currentYear) {
-      return `Person is ${age} years old today`;
+      return `${personName} is ${age} years old today`;
     } else {
-      return `Person will be ${age} years old in ${endYear.value}`;
+      return `${personName} will be ${age} years old in ${endYear.value}`;
     }
   });
 
@@ -147,12 +184,18 @@ export default function YearRangeSlider(props: YearRangeSliderProps) {
           style={{ left: `${startPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "start")}
         >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="#1e293b">
+            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+          </svg>
         </div>
         <div
           class={`year-range-slider-handle ${endYear.value === currentYear ? "current-year-handle" : ""}`}
           style={{ left: `${endPos.value}%` }}
           onMouseDown={(e) => handleMouseDown(e, "end")}
         >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="#1e293b">
+            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+          </svg>
         </div>
       </div>
       <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 text-base sm:text-lg font-semibold text-slate-300">
